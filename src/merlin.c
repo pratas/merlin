@@ -24,8 +24,17 @@ int SortByValue(const void *a, const void *b){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void Sort(char *fin, char *fou){
+  uint8_t s = 0;
+  uint32_t i, k, pos = 0, line = 0;
   FILE *FI = fopen(fin, "r");
   FILE *FO = fopen(fou, "w");
+  BUF  *B = CreateBuffer(BUF_SIZE);
+
+  while((k = fread(B->buf, 1, B->size, FI)))
+    for(i = 0 ; i < k ; ++i){
+      s = B->buf[i];
+
+      }
 
 /*
   int32_t last = T->size - 1;
@@ -35,6 +44,7 @@ void Sort(char *fin, char *fou){
     }
 */
 
+  RemoveBuffer(B);
   fclose(FI);
   fclose(FO);
   }
