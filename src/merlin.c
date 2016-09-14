@@ -12,39 +12,31 @@
 #define ESCAPE 127
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
-int SortByValue(const void *a, const void *b){
-  VT *ia = (VT *) a;
-  VT *ib = (VT *) b;
-  if     (ia->value < ib->value) return -1;
-  else if(ia->value > ib->value) return 1;
-  else                           return 0;
+
+int Compare(const void *a, const void *b){
+  return strcmp (*(const char **) a, *(const char **) b); 
   }
-*/
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void Sort(char *fin, char *fou){
-  uint8_t s = 0;
-  uint32_t i, k, pos = 0, line = 0;
   FILE *FI = fopen(fin, "r");
   FILE *FO = fopen(fou, "w");
-  BUF  *B = CreateBuffer(BUF_SIZE);
+  char **lines = NULL;
+  size_t len = 0;
+  ssize_t lines_size;
+  uint32_t k = 0, max_k = 100000;
 
-  while((k = fread(B->buf, 1, B->size, FI)))
-    for(i = 0 ; i < k ; ++i){
-      s = B->buf[i];
-
-      }
-
-/*
-  int32_t last = T->size - 1;
-  if(T->id < last){
-    AddElementWP(&T->V[T->id], bits, nm, size, iPos, ePos);
-    qsort(T->V, T->id+1, sizeof(VT), SortByValue);
+  lines = (char **) Malloc(max_k * sizeof(char *));
+  while((lines_size = getline(&lines[k], &len, FI)) != -1){
+    qsort(lines, ++k, sizeof(char *), Compare);
     }
-*/
 
-  RemoveBuffer(B);
+  int x;
+  for(x = 0 ; x < k ; ++x){
+    printf("x: %s", lines[x]);
+    }
+
   fclose(FI);
   fclose(FO);
   }
