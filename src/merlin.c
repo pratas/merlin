@@ -19,26 +19,32 @@ int Compare(const void *a, const void *b){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Sort(char *fin, char *fou){
+void Sort(char *fin, char *fou, char *fdx){
   FILE *FI = fopen(fin, "r");
   FILE *FO = fopen(fou, "w");
+  FILE *FX = fopen(fdx, "w");
   char **lines = NULL;
   size_t len = 0;
   ssize_t lines_size;
-  uint32_t k = 0, max_k = 100000;
+  uint32_t k = 0, x, max_k = 100000;
 
   lines = (char **) Malloc(max_k * sizeof(char *));
   while((lines_size = getline(&lines[k], &len, FI)) != -1){
     qsort(lines, ++k, sizeof(char *), Compare);
     }
 
-  int x;
   for(x = 0 ; x < k ; ++x){
-    printf("x: %s", lines[x]);
+    fprintf(FO, "%s", lines[x]);
+    fprintf(FX, "%s", strrchr(lines[x], '\t') + 1);
     }
 
+  for(x = 0 ; x < k ; ++x)
+    free(lines[x]);
+
+  free(lines);
   fclose(FI);
   fclose(FO);
+  fclose(FX);
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -217,8 +223,9 @@ int main(int argc, char *argv[]){
     return EXIT_SUCCESS;
     }
   
-  char *f_pack_name = Cat(argv[argc-1], ".mpack");
-  char *f_sort_name = Cat(argv[argc-1], ".msort");
+  char *f_pack_name  = Cat(argv[argc-1], ".mpack");
+  char *f_sort_name  = Cat(argv[argc-1], ".msort");
+  char *f_index_name = Cat(argv[argc-1], ".mindex");
 
   fprintf(stderr, "MERLIN starting...\n");
   if(ArgBin(0, argv, argc, "-d")){
@@ -226,7 +233,7 @@ int main(int argc, char *argv[]){
     }
   else{
     Pack(f_pack_name, argv[argc-1]);
-    Sort(f_pack_name, f_sort_name);    
+    Sort(f_pack_name, f_sort_name, f_index_name);    
     Unpack(f_sort_name);
     }
   fprintf(stderr, "Done!\n");
