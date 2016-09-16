@@ -19,7 +19,7 @@ int Compare(const void *a, const void *b){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Sort(char *fin, char *fou, char *fdx){
+void Sort(char *fin, char *fou, char *fdx, int lossy){
   FILE *FI = fopen(fin, "r");
   FILE *FO = fopen(fou, "w");
   FILE *FX = fopen(fdx, "w");
@@ -35,7 +35,8 @@ void Sort(char *fin, char *fou, char *fdx){
 
   for(x = 0 ; x < k ; ++x){
     fprintf(FO, "%s", lines[x]);
-    fprintf(FX, "%s", strrchr(lines[x], '\t') + 1);
+    if(lossy == 0)
+      fprintf(FX, "%s", strrchr(lines[x], '\t') + 1);
     }
 
   for(x = 0 ; x < k ; ++x)
@@ -168,6 +169,40 @@ void Pack(char *fpname, char *ipname){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+void PackWithIndex(char *fpname, char *fsname, char *ipname){
+  uint32_t i = 0;
+  FILE *F = fopen(fpname, "w");
+  FILE *R = fopen(ipname, "r");
+  FILE *I = fopen(fsname, "r");
+  Read *Read = CreateRead(65536 + GUARD, 65535 + GUARD);
+
+  while(GetRead(R, Read)){
+
+    char *line = NULL;
+    size_t len = 0;
+    if((getline(&line, &len, I)) == -1){
+      fprintf(stderr, "Error: the index file does not match!\n");
+      exit(1);
+      }
+
+    fprintf(F, "%s\t", line); // POSITION FOR SORTING INTO ORIGINAL ORDER
+
+    PrintStream(Read->scores,   strlen((char *) Read->scores),  F);
+    PrintStream(Read->bases,    strlen((char *) Read->bases ),  F);
+    PrintStream(Read->header1,  strlen((char *) Read->header1), F);
+    PrintStream(Read->header2,  strlen((char *) Read->header2), F);
+    PrintID(++i, F);
+    }
+
+  FreeRead(Read);
+  fclose(F);
+  fclose(R);
+  fclose(I);
+  }
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 void PrintMenu(void){ 
   fprintf(stderr,
   "Usage: MERLIN [OPTION]... [FILE] > [STDOUT]                          \n"
@@ -212,6 +247,7 @@ void PrintVersion(void){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 int main(int argc, char *argv[]){
+  int lossy = 0, verbose = 0;
 
   if(argc == 1 || argc > 3 || ArgBin(0, argv, argc, "-h")){
     PrintMenu();
@@ -222,22 +258,36 @@ int main(int argc, char *argv[]){
     PrintVersion();
     return EXIT_SUCCESS;
     }
+
+  if(ArgBin(0, argv, argc, "-v"))
+    verbose = 1;
   
   char *f_pack_name  = Cat(argv[argc-1], ".mpack");
   char *f_sort_name  = Cat(argv[argc-1], ".msort");
   char *f_index_name = Cat(argv[argc-1], ".mindex");
 
-  fprintf(stderr, "Running MERLIN ...\n");
+  if(verbose) fprintf(stderr, "[>] Running MERLIN ...\n");
+
   if(ArgBin(0, argv, argc, "-d")){ // PREPARE FOR DECOMPRESSION
-    Pack(f_pack_name, argv[argc-1]);
-   
-    
- 
+
+    int iarg = 0, x;
+    for(x = 1 ; x < argc ; ++x)
+      if(strcmp(argv[x], "-d")){
+        iarg = x + 1;
+        break;
+        }
+
+    PackWithIndex(f_pack_name, argv[iarg], argv[argc-1]);
+    // Sort(f_pack_name, f_sort_name, f_index_name, lossy);
     Unpack(f_sort_name);
     }
   else{ // PREPARE FOR COMPRESSION
+
+    if(ArgBin(0, argv, argc, "-l"))
+      lossy = 1;
+
     Pack(f_pack_name, argv[argc-1]);
-    Sort(f_pack_name, f_sort_name, f_index_name);    
+    Sort(f_pack_name, f_sort_name, f_index_name, lossy);
     Unpack(f_sort_name);
     remove(f_pack_name);
     // OUTPUT: <FILE>.msort <FILE>.mindex
@@ -246,7 +296,7 @@ int main(int argc, char *argv[]){
   free(f_pack_name); 
   free(f_sort_name); 
   free(f_index_name); 
-  fprintf(stderr, "Done!\n");
+  if(verbose) fprintf(stderr, "[>] Done!\n");
 
   return EXIT_SUCCESS;
   }
