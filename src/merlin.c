@@ -277,6 +277,11 @@ int main(int argc, char *argv[]){
         break;
         }
 
+    if(iarg == argc){
+      fprintf(stderr, "[x] Error: invalid parameters!\n");
+      exit(1);
+      }
+
     PackWithIndex(f_pack_name, argv[iarg], argv[argc-1]);
     // Sort(f_pack_name, f_sort_name, f_index_name, lossy);
     Unpack(f_sort_name);
