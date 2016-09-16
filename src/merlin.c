@@ -179,7 +179,7 @@ void PrintMenu(void){
   "  -V                   display version number,                       \n"
   "  -v                   verbose mode (more information),              \n"
   "  -l                   lossy (does not store read order),            \n"
-  "  -d <positions>       unMERLIN (back to the origin),                \n"
+  "  -d <FILE>            unMERLIN (back to the original file),         \n"
   "                                                                     \n"
   "Mandatory arguments:                                                 \n"
   "                                                                     \n"
@@ -203,7 +203,7 @@ void PrintVersion(void){
   "Copyright (C) 2016-2017 University of Aveiro. This is a Free software.   \n"
   "You may redistribute copies of it under the terms of the GNU - General   \n"
   "Public License v3 <http://www.gnu.org/licenses/gpl.html>. There is NOT   \n"
-  "ANY WARRANTY, to the extent permitted by law. Developed and Written by   \n"
+  "ANY WARRANTY, to the extent permitted by law. Developed and written by   \n"
   "Diogo Pratas & Armando J. Pinho                                        \n\n", 
   VERSION, RELEASE);
   }
@@ -227,16 +227,27 @@ int main(int argc, char *argv[]){
   char *f_sort_name  = Cat(argv[argc-1], ".msort");
   char *f_index_name = Cat(argv[argc-1], ".mindex");
 
-  fprintf(stderr, "MERLIN starting...\n");
-  if(ArgBin(0, argv, argc, "-d")){
-    // TODO: BUILD
+  fprintf(stderr, "Running MERLIN ...\n");
+  if(ArgBin(0, argv, argc, "-d")){ // PREPARE FOR DECOMPRESSION
+    Pack(f_pack_name, argv[argc-1]);
+   
+    
+ 
+    Unpack(f_sort_name);
     }
-  else{
+  else{ // PREPARE FOR COMPRESSION
     Pack(f_pack_name, argv[argc-1]);
     Sort(f_pack_name, f_sort_name, f_index_name);    
     Unpack(f_sort_name);
+    remove(f_pack_name);
+    // OUTPUT: <FILE>.msort <FILE>.mindex
     }
+  
+  free(f_pack_name); 
+  free(f_sort_name); 
+  free(f_index_name); 
   fprintf(stderr, "Done!\n");
+
   return EXIT_SUCCESS;
   }
 
