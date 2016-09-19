@@ -3,17 +3,14 @@
 
 #include "defs.h"
 
-#define DEF_HEADER_SIZE  512
-#define DEF_READ_SIZE    1024
-#define READ_LGUARD      32
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 typedef struct{
-  uint8_t    *header1;
-  uint8_t    *bases;
-  uint8_t    *header2;
-  uint8_t    *scores;
+  char       *header1;
+  char       *bases;
+  char       *header2;
+  char       *scores;
+  uint64_t   position;
   uint32_t   headerMaxSize;
   uint32_t   readMaxSize;
   uint32_t   solidData;
@@ -23,11 +20,18 @@ typedef struct{
   }
 Read;
 
+typedef struct{
+  uint64_t   id;
+  uint64_t   size;
+  Read       *Read;
+  }
+READS;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uint8_t  PseudoDna2Solid  (uint8_t);
 uint8_t  Solid2PseudoDna  (uint8_t);
-Read     *CreateRead      (uint32_t, uint32_t);
+Read     *CreateRead      (void);
 void     FreeRead         (Read *);
 Read     *GetRead         (FILE *, Read *);
 

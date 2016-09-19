@@ -47,18 +47,8 @@ static void UEOF(void){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // CREATE READ
 //
-Read *CreateRead(uint32_t HMax, uint32_t RMax){
-  Read *R          = (Read *)    Calloc(1,                  sizeof(Read));
-  R->header1       = (uint8_t *) Calloc(HMax + READ_LGUARD, sizeof(uint8_t));
-  R->header2       = (uint8_t *) Calloc(HMax + READ_LGUARD, sizeof(uint8_t));
-  R->bases         = (uint8_t *) Calloc(RMax + READ_LGUARD, sizeof(uint8_t));
-  R->scores        = (uint8_t *) Calloc(RMax + READ_LGUARD, sizeof(uint8_t));
-  R->headerMaxSize = HMax;
-  R->readMaxSize   = RMax;
-  R->header1       += READ_LGUARD;
-  R->header2       += READ_LGUARD;
-  R->bases         += READ_LGUARD;
-  R->scores        += READ_LGUARD;
+Read *CreateRead(void){
+  Read *R           = (Read *) Calloc(1, sizeof(Read));
   R->solidData      = 0;
   R->header2Present = 0;
   R->skipNs         = 0;
@@ -70,13 +60,11 @@ Read *CreateRead(uint32_t HMax, uint32_t RMax){
 // CREATE READ
 //
 void FreeRead(Read *R){
-  Free(R->header1-READ_LGUARD, (R->headerMaxSize+READ_LGUARD) * 
-  sizeof(uint8_t));
-  Free(R->header2-READ_LGUARD, (R->headerMaxSize+READ_LGUARD) * 
-  sizeof(uint8_t));
-  Free(R->bases-READ_LGUARD,  (R->readMaxSize+READ_LGUARD) * sizeof(uint8_t));
-  Free(R->scores-READ_LGUARD, (R->readMaxSize+READ_LGUARD) * sizeof(uint8_t));
-  Free(R, sizeof(Read));
+  free(R->header1);
+  free(R->bases);
+  free(R->header2);
+  free(R->scores);
+  free(R);
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,17 +72,19 @@ void FreeRead(Read *R){
 //
 Read *GetRead(FILE *F, Read *R){
   int n, c = fgetc(F);
+  size_t len;
+  ssize_t ls;
 
   if(c == EOF) return NULL;
   if(c != '@'){
     fprintf(stderr, "Error: failed to get the initial '@' character\n");
     exit(1);
     }
-
-  if(!fgets((char *)R->header1, R->headerMaxSize, F)) UEOF();
-  if(!fgets((char *)R->bases,   R->readMaxSize,   F)) UEOF();
-  if(!fgets((char *)R->header2, R->headerMaxSize, F)) UEOF();
-  if(!fgets((char *)R->scores,  R->readMaxSize,   F)) UEOF();
+  
+  if((ls = getline(&R->header1, &len, F)) == -1) UEOF();
+  if((ls = getline(&R->bases,   &len, F)) == -1) UEOF();
+  if((ls = getline(&R->header2, &len, F)) == -1) UEOF();
+  if((ls = getline(&R->scores,  &len, F)) == -1) UEOF();
     
   if(R->solidData){
     n = 1;
