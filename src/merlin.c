@@ -9,7 +9,7 @@
 #include "args.h"
 #include "buffer.h"
 
-#define ESCAPE 9
+#define ESCAPE 9 // 9 ASCII = TAB
 #define MAX_BLOCK 100000
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
