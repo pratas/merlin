@@ -29,20 +29,30 @@ void Sort(char *fin, char *fou, char *fdx, int lossy){
   uint32_t k = 0, x, max_k = 100000;
 
   lines = (char **) Malloc(max_k * sizeof(char *));
-  while((lines_size = getline(&lines[k], &len, FI)) != -1){
-    qsort(lines, ++k, sizeof(char *), Compare);
-    }
+  for(;;){
+    while((lines_size = getline(&lines[k], &len, FI)) != -1 && k != max_k){
+      qsort(lines, ++k, sizeof(char *), Compare);
+      }
 
-  for(x = 0 ; x < k ; ++x){
-    fprintf(FO, "%s", lines[x]);
-    if(lossy == 0)
-      fprintf(FX, "%s", strrchr(lines[x], '\t') + 1);
+    for(x = 0 ; x < k ; ++x){
+      fprintf(FO, "%s", lines[x]);
+      if(lossy == 0)
+        fprintf(FX, "%s", strrchr(lines[x], '\t') + 1);
+      }
+
+    if(lines_size == -1)
+      break;
+
+    for(x = 0 ; x < k ; ++x)
+      free(lines[x]);
+ 
+    k = 0;
     }
 
   for(x = 0 ; x < k ; ++x)
     free(lines[x]);
-
   free(lines);
+
   fclose(FI);
   fclose(FO);
   fclose(FX);
