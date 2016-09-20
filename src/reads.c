@@ -48,11 +48,11 @@ static void UEOF(void){
 // CREATE READ
 //
 Read *CreateRead(void){
-  Read *R           = (Read *) Calloc(1, sizeof(Read));
-  R->solidData      = 0;
-  R->header2Present = 0;
-  R->skipNs         = 0;
-  R->lowestScore    = (uint8_t) 255;
+  Read *R        = (Read *) Calloc(1, sizeof(Read));
+  R->solidData   = 0;
+  R->header2E    = 0;
+  R->skipNs      = 0;
+  R->lowestScore = (uint8_t) 255;
   return R;
   }
 

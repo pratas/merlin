@@ -14,7 +14,7 @@ typedef struct{
   uint32_t   headerMaxSize;
   uint32_t   readMaxSize;
   uint32_t   solidData;
-  uint32_t   header2Present;
+  uint32_t   header2E;
   uint32_t   skipNs;
   uint8_t    lowestScore;
   }

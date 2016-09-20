@@ -37,9 +37,12 @@ void Sort(char *fin, char *fou, char *fdx, int lossy){
   char **lines = NULL;
   size_t len = 0;
   ssize_t lines_size;
-  uint32_t k = 0, x, max_k = MAX_BLOCK;
+  uint64_t k = 0, x, max_k = MAX_BLOCK;
 
   lines = (char **) Malloc(max_k * sizeof(char *));
+
+  fprintf(FX, "#MRL%"PRIu64"\n", max_k);
+
   for(;;){
     while((lines_size = getline(&lines[k], &len, FI)) != -1 && k != max_k){
       qsort(lines, ++k, sizeof(char *), Compare);
@@ -79,7 +82,6 @@ int Unpack(char *fpname){
   const char delim[1] = { ESCAPE };
 
   while((ls = getline(&line, &len, F)) != -1){
-    //fprintf(stderr, "%s\n", line);
     char *x = strtok(line, delim);
     char *y = strtok(NULL, delim);
     char *z = strtok(NULL, delim);
@@ -134,11 +136,20 @@ void Pack(char *fpname, char *ipname){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void PackWithIndex(char *fpname, char *fsname, char *ipname){
+void PackWithIndex(char *fpname, char *fsname, char *ipname, int verbose){
   FILE *F = fopen(fpname, "w");
   FILE *R = fopen(ipname, "r");
   FILE *I = fopen(fsname, "r");
   Read *Read = CreateRead();
+  uint64_t size = 0;
+
+  if(fgetc(I) != '#' || fgetc(I) != 'M' || fgetc(I) != 'R' || fgetc(I) != 'L' || 
+  fscanf(I, "%"PRIu64"", &size) != 1){
+    fprintf(stderr, "Error: invalid index file!\n");
+    exit(1);
+    }
+
+  if(verbose) fprintf(stderr, "[>] Block line size: %"PRIu64"\n", size);  
 
   while(GetRead(R, Read)){
 
@@ -250,7 +261,7 @@ int main(int argc, char *argv[]){
       }
 
     if(verbose) fprintf(stderr, "[>] Reading index file: %s\n", argv[iarg]);
-    PackWithIndex(f_pack_name, argv[iarg], argv[argc-1]);
+    PackWithIndex(f_pack_name, argv[iarg], argv[argc-1], verbose);
     // Sort(f_pack_name, f_sort_name, f_index_name, lossy);
     Unpack(f_sort_name);
     }
