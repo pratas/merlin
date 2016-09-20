@@ -28,7 +28,8 @@ int SortByPosition(const void *a, const void *b){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t bsize){
+void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t bsize, uint64_t 
+n_lines){
   FILE *FI = fopen(fin, "r");
   FILE *FO = fopen(fou, "w");
   FILE *FX = fopen(fdx, "w");
@@ -39,7 +40,7 @@ void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t bsize){
 
   lines = (char **) Malloc(max_k * sizeof(char *));
 
-  fprintf(FX, "#MRL%"PRIu64"\n", max_k);
+  fprintf(FX, "#MRL%"PRIu64":%"PRIu64"\n", max_k, n_lines);
 
   for(;;){
     while((lines_size = getline(&lines[k], &len, FI)) != -1 && k != max_k){
@@ -113,7 +114,7 @@ void PrintID(uint32_t i, FILE *F){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Pack(char *fpname, char *ipname){
+uint64_t Pack(char *fpname, char *ipname){
   uint64_t i = 0;
   FILE *F = fopen(fpname, "w");
   FILE *R = fopen(ipname, "r");
@@ -130,23 +131,27 @@ void Pack(char *fpname, char *ipname){
   FreeRead(Read);
   fclose(F);
   fclose(R);
+
+  return i;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void PackWithIndex(char *fpname, char *fsname, char *ipname, int verbose){
-  FILE *F = fopen(fpname, "w");
+void PackWithIndex(char *fsname, char *ipname, int verbose){
   FILE *R = fopen(ipname, "r");
   FILE *I = fopen(fsname, "r");
-  uint64_t size = 0, k = 0, x = 0;
+  uint64_t size = 0, idx = 0, lines = 0, k = 0, x = 0;
 
   if(fgetc(I) != '#' || fgetc(I) != 'M' || fgetc(I) != 'R' || fgetc(I) != 'L' || 
-  fscanf(I, "%"PRIu64"", &size) != 1){
+  fscanf(I, "%"PRIu64":%"PRIu64"", &size, &lines) != 2){
     fprintf(stderr, "Error: invalid index file!\n");
     exit(1);
     }
 
-  if(verbose) fprintf(stderr, "[>] Block line size: %"PRIu64"\n", size);
+  if(verbose){
+    fprintf(stderr, "[>] Block line size: %"PRIu64"\n", size);
+    fprintf(stderr, "[>] Number of reads: %"PRIu64"\n", lines);
+    }
 
   Read **Reads = (Read **) Malloc((size+1) * sizeof(Read *));
 
@@ -162,8 +167,10 @@ void PackWithIndex(char *fpname, char *fsname, char *ipname, int verbose){
         }
       //qsort(Reads, k+1, sizeof(Read), SortByPosition);
       Reads[++k] = CreateRead();
+      ++idx;
       }
 
+    // FIXME: SORT IS NOT WORKING
     qsort(Reads, k, sizeof(Read), SortByPosition);
 
     for(x = 0 ; x < k ; ++x){
@@ -173,14 +180,14 @@ void PackWithIndex(char *fpname, char *fsname, char *ipname, int verbose){
       fprintf(stdout, "%s",  Reads[x]->scores);
       }
 
-    break;
+    if(idx >= lines)
+      break;
     }
 
   for(x = 0 ; x < size ; ++x)
     free(Reads[x]);
   free(Reads);
 
-  fclose(F);
   fclose(R);
   fclose(I);
   }
@@ -269,24 +276,24 @@ int main(int argc, char *argv[]){
       }
 
     if(verbose) fprintf(stderr, "[>] Reading index file: %s\n", argv[iarg]);
-    PackWithIndex(f_pack_name, argv[iarg], argv[argc-1], verbose);
+    PackWithIndex(argv[iarg], argv[argc-1], verbose);
     }
   else{ // PREPARE FOR COMPRESSION
 
-    uint64_t bsize = 0;
+    uint64_t b_size = 0, n_lines = 0;
     for(x = 1 ; x < argc ; ++x)
       if(strcmp(argv[x], "-b")){
-        bsize = atol(argv[x + 1]);
+        b_size = atol(argv[x + 1]);
         break;
         }
 
-    if(bsize == 0) bsize = MAX_BLOCK;
+    if(b_size == 0) b_size = MAX_BLOCK;
 
     if(ArgBin(0, argv, argc, "-l"))
       lossy = 1;
 
-    Pack(f_pack_name, argv[argc-1]);
-    Sort(f_pack_name, f_sort_name, f_index_name, lossy, bsize);
+    n_lines = Pack(f_pack_name, argv[argc-1]);
+    Sort(f_pack_name, f_sort_name, f_index_name, lossy, b_size, n_lines);
     Unpack(f_sort_name);
     remove(f_pack_name);
     // OUTPUT: <FILE>.msort <FILE>.mindex
