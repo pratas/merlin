@@ -28,11 +28,20 @@ int SortByPosition(const void *a, const void *b){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void WriteRead(char *w, char *x, char *y, char *z){
+void WriteReadN(char *w, char *x, char *y, char *z){
   fprintf(stdout, "@%s\n", w);
   fprintf(stdout, "%s\n",  x);
   fprintf(stdout, "%s\n",  y);
   fprintf(stdout, "%s\n",  z);
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+void WriteRead(char *w, char *x, char *y, char *z){
+  fprintf(stdout, "@%s", w);
+  fprintf(stdout, "%s",  x);
+  fprintf(stdout, "%s",  y);
+  fprintf(stdout, "%s",  z);
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,7 +103,7 @@ void Unpack(char *fpname){
     char *y = strtok(NULL, delim);
     char *z = strtok(NULL, delim);
     char *w = strtok(NULL, delim);
-    WriteRead(z, y, w, x);
+    WriteReadN(z, y, w, x);
     }
 
   free(line);
@@ -178,12 +187,9 @@ void PackWithIndex(char *fsname, char *ipname, int verbose){
     // FIXME: SORT IS NOT WORKING
     qsort(Reads, k, sizeof(Read), SortByPosition);
 
-    for(x = 0 ; x < k ; ++x){
-      fprintf(stdout, "@%s", Reads[x]->header1);
-      fprintf(stdout, "%s",  Reads[x]->bases);
-      fprintf(stdout, "%s",  Reads[x]->header2);
-      fprintf(stdout, "%s",  Reads[x]->scores);
-      }
+    for(x = 0 ; x < k ; ++x)
+      WriteRead(Reads[x]->header1, Reads[x]->bases, Reads[x]->header2, 
+      Reads[x]->scores);
 
     if(idx >= lines)
       break;
