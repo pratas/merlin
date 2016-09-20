@@ -82,7 +82,7 @@ n_lines){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-int Unpack(char *fpname){
+void Unpack(char *fpname){
   FILE *F = fopen(fpname, "r");
   ssize_t ls;
   size_t len;
@@ -99,7 +99,6 @@ int Unpack(char *fpname){
 
   free(line);
   fclose(F);
-  return 1;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
