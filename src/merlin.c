@@ -28,6 +28,15 @@ int SortByPosition(const void *a, const void *b){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+void WriteRead(char *w, char *x, char *y, char *z){
+  fprintf(stdout, "@%s\n", w);
+  fprintf(stdout, "%s\n",  x);
+  fprintf(stdout, "%s\n",  y);
+  fprintf(stdout, "%s\n",  z);
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t bsize, uint64_t 
 n_lines){
   FILE *FI = fopen(fin, "r");
@@ -85,10 +94,7 @@ int Unpack(char *fpname){
     char *y = strtok(NULL, delim);
     char *z = strtok(NULL, delim);
     char *w = strtok(NULL, delim);
-    fprintf(stdout, "@%s\n", z);
-    fprintf(stdout, "%s\n",  y);
-    fprintf(stdout, "%s\n",  w);
-    fprintf(stdout, "%s\n",  x);
+    WriteRead(z, y, w, x);
     }
 
   free(line);
