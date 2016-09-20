@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "defs.h"
 #include "misc.h"
 #include "mem.h"
@@ -21,23 +21,21 @@ int Compare(const void *a, const void *b){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 int SortByPosition(const void *a, const void *b){
-  Read *ia = (Read *) a;
-  Read *ib = (Read *) b;
-  if     (ia->position < ib->position) return -1;
-  else if(ia->position > ib->position) return 1;
-  else                                 return 0;
+  Read *xA = (Read *) a;
+  Read *xB = (Read *) b;
+  return xB->position-xA->position;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Sort(char *fin, char *fou, char *fdx, int lossy){
+void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t bsize){
   FILE *FI = fopen(fin, "r");
   FILE *FO = fopen(fou, "w");
   FILE *FX = fopen(fdx, "w");
   char **lines = NULL;
   size_t len = 0;
   ssize_t lines_size;
-  uint64_t k = 0, x, max_k = MAX_BLOCK;
+  uint64_t k = 0, x, max_k = bsize;
 
   lines = (char **) Malloc(max_k * sizeof(char *));
 
@@ -140,8 +138,7 @@ void PackWithIndex(char *fpname, char *fsname, char *ipname, int verbose){
   FILE *F = fopen(fpname, "w");
   FILE *R = fopen(ipname, "r");
   FILE *I = fopen(fsname, "r");
-  Read *Read = CreateRead();
-  uint64_t size = 0;
+  uint64_t size = 0, k = 0, x = 0;
 
   if(fgetc(I) != '#' || fgetc(I) != 'M' || fgetc(I) != 'R' || fgetc(I) != 'L' || 
   fscanf(I, "%"PRIu64"", &size) != 1){
@@ -149,30 +146,40 @@ void PackWithIndex(char *fpname, char *fsname, char *ipname, int verbose){
     exit(1);
     }
 
-  if(verbose) fprintf(stderr, "[>] Block line size: %"PRIu64"\n", size);  
+  if(verbose) fprintf(stderr, "[>] Block line size: %"PRIu64"\n", size);
 
-  while(GetRead(R, Read)){
+  Read **Reads = (Read **) Malloc((size+1) * sizeof(Read *));
 
-    uint64_t position;
-    if(fscanf(I, "%"PRIu64"", &position) != 1){
-      fprintf(stderr, "Error: the index file does not match!\n");
-      exit(1);
+  for(;;){
+    k = 0;
+    Reads[k] = CreateRead();
+
+    while(GetRead(R, Reads[k]) && k < size){
+
+      if(fscanf(I, "%"PRIu64"", &Reads[k]->position) != 1){
+        fprintf(stderr, "Error: the index file does not match!\n");
+        exit(1);
+        }
+      //qsort(Reads, k+1, sizeof(Read), SortByPosition);
+      Reads[++k] = CreateRead();
       }
 
-    Read->position = position;
+    qsort(Reads, k, sizeof(Read), SortByPosition);
 
-    // TODO: SORT BY POSITION
+    for(x = 0 ; x < k ; ++x){
+      fprintf(stdout, "@%s", Reads[x]->header1);
+      fprintf(stdout, "%s",  Reads[x]->bases);
+      fprintf(stdout, "%s",  Reads[x]->header2);
+      fprintf(stdout, "%s",  Reads[x]->scores);
+      }
 
-//    qsort(Read, T->size, sizeof(Read), SortByPosition);
-
-    fprintf(F, "%"PRIu64"\t", position); // POSITION FOR SORTING INTO ORIGINAL ORDER
-    PrintStream(Read->scores,   strlen((char *) Read->scores),  F);
-    PrintStream(Read->bases,    strlen((char *) Read->bases ),  F);
-    PrintStream(Read->header1,  strlen((char *) Read->header1), F);
-    PrintStream(Read->header2,  strlen((char *) Read->header2), F);
+    break;
     }
 
-  FreeRead(Read);
+  for(x = 0 ; x < size ; ++x)
+    free(Reads[x]);
+  free(Reads);
+
   fclose(F);
   fclose(R);
   fclose(I);
@@ -192,6 +199,7 @@ void PrintMenu(void){
   "  -V                   display version number,                       \n"
   "  -v                   verbose mode (more information),              \n"
   "  -l                   lossy (does not store read order),            \n"
+  "  -b <size>            block size for sorting,                       \n"
   "  -d <FILE>            unMERLIN (back to the original file),         \n"
   "                                                                     \n"
   "Mandatory arguments:                                                 \n"
@@ -225,7 +233,7 @@ void PrintVersion(void){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 int main(int argc, char *argv[]){
-  int lossy = 0, verbose = 0;
+  int x, lossy = 0, verbose = 0;
 
   if(argc == 1 || argc > 6 || ArgBin(0, argv, argc, "-h")){
     PrintMenu();
@@ -248,7 +256,7 @@ int main(int argc, char *argv[]){
 
   if(ArgBin(0, argv, argc, "-d")){ // PREPARE FOR DECOMPRESSION
 
-    int iarg = 0, x;
+    int iarg = 0;
     for(x = 1 ; x < argc ; ++x)
       if(strcmp(argv[x], "-d")){
         iarg = x + 2;
@@ -262,16 +270,23 @@ int main(int argc, char *argv[]){
 
     if(verbose) fprintf(stderr, "[>] Reading index file: %s\n", argv[iarg]);
     PackWithIndex(f_pack_name, argv[iarg], argv[argc-1], verbose);
-    // Sort(f_pack_name, f_sort_name, f_index_name, lossy);
-    Unpack(f_sort_name);
     }
   else{ // PREPARE FOR COMPRESSION
+
+    uint64_t bsize = 0;
+    for(x = 1 ; x < argc ; ++x)
+      if(strcmp(argv[x], "-b")){
+        bsize = atol(argv[x + 1]);
+        break;
+        }
+
+    if(bsize == 0) bsize = MAX_BLOCK;
 
     if(ArgBin(0, argv, argc, "-l"))
       lossy = 1;
 
     Pack(f_pack_name, argv[argc-1]);
-    Sort(f_pack_name, f_sort_name, f_index_name, lossy);
+    Sort(f_pack_name, f_sort_name, f_index_name, lossy, bsize);
     Unpack(f_sort_name);
     remove(f_pack_name);
     // OUTPUT: <FILE>.msort <FILE>.mindex
