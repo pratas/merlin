@@ -295,8 +295,9 @@ int main(int argc, char *argv[]){
     n_lines = Pack(f_pack_name, argv[argc-1]);
     Sort(f_pack_name, f_sort_name, f_index_name, lossy, b_size, n_lines);
     Unpack(f_sort_name);
+    remove(f_sort_name);
     remove(f_pack_name);
-    // OUTPUT: <FILE>.msort <FILE>.mindex
+    // OUTPUT: <STDOUT> & <FILE>.mindex
     }
   
   free(f_pack_name); 
