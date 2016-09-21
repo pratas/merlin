@@ -10,24 +10,7 @@
 #include "buffer.h"
 
 #define ESCAPE 9 // 9 ASCII = TAB
-#define MAX_BLOCK 100000
 #define MAX_LINE_SIZE 4096
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-int Compare(const void *a, const void *b){
-  return strcmp (*(const char **) a, *(const char **) b); 
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-int SortByPosition(const void *a, const void *b){ 
-  Read *ia = (Read *) a;
-  Read *ib = (Read *) b;
-  if     (ia->position < ib->position) return -1;
-  else if(ia->position > ib->position) return 1;
-  else                                 return 0;
-  }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
