@@ -280,8 +280,8 @@ int main(int argc, char *argv[]){
 
     int iarg = 0;
     for(x = 1 ; x < argc ; ++x)
-      if(strcmp(argv[x], "-d")){
-        iarg = x + 2;
+      if(!strcmp(argv[x], "-d")){
+        iarg = x + 1;
         break;
         }
 
@@ -297,12 +297,14 @@ int main(int argc, char *argv[]){
 
     uint64_t b_size = 0, n_lines = 0;
     for(x = 1 ; x < argc ; ++x)
-      if(strcmp(argv[x], "-b")){
+      if(!strcmp(argv[x], "-b")){
         b_size = atol(argv[x + 1]);
         break;
         }
 
     if(b_size == 0) b_size = MAX_BLOCK;
+    
+    if(verbose) fprintf(stderr, "[>] Using block size: %"PRIu64"\n", b_size);
 
     if(ArgBin(0, argv, argc, "-l"))
       lossy = 1;
