@@ -16,6 +16,7 @@ char     *ReplaceSubStr (char *, char *, char *);
 uint32_t Log            (uint64_t);
 double   PW             (double, double);
 FILE     *Fopen         (const char *, const char *);
+FILE     *Popen         (const char *, const char *);
 void     CheckFile      (uint8_t, char *);
 uint64_t FNBytes        (FILE *);
 void     Progress       (uint64_t, uint64_t);

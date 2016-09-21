@@ -48,45 +48,23 @@ void WriteRead(char *w, char *x, char *y, char *z){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t bsize, uint64_t 
-n_lines){
-  FILE *FI = fopen(fin, "r");
-  FILE *FO = fopen(fou, "w");
-  FILE *FX = fopen(fdx, "w");
-  char **lines = NULL;
-  size_t len = 0;
-  ssize_t lines_size;
-  uint64_t k = 0, x, max_k = bsize;
+void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t n_lines){
+  char fname[2048];
+  sprintf(fname, "sort %s", fin);
+  FILE *FI = Popen(fname, "r");
+  FILE *FX = Fopen(fdx, "w");
+  FILE *FO = Fopen(fou, "w");
+  char readbuf[2048];
 
-  lines = (char **) Malloc(max_k * sizeof(char *));
+  fprintf(FX, "#MRL%"PRIu64"\n", n_lines);
 
-  fprintf(FX, "#MRL%"PRIu64":%"PRIu64"\n", max_k, n_lines);
-
-  for(;;){
-    while((lines_size = getline(&lines[k], &len, FI)) != -1 && k != max_k){
-      qsort(lines, ++k, sizeof(char *), Compare);
-      }
-
-    for(x = 0 ; x < k ; ++x){
-      fprintf(FO, "%s", lines[x]);
-      if(lossy == 0)
-        fprintf(FX, "%s", strrchr(lines[x], '\t') + 1);
-      }
-
-    if(lines_size == -1)
-      break;
-
-    for(x = 0 ; x < k ; ++x)
-      free(lines[x]);
- 
-    k = 0;
+  while(fgets(readbuf, 2048, FI)){
+    fputs(readbuf, FO);
+    if(lossy == 0)
+      fprintf(FX, "%s", strrchr(readbuf, '\t') + 1);
     }
 
-  for(x = 0 ; x < k ; ++x)
-    free(lines[x]);
-  free(lines);
-
-  fclose(FI);
+  pclose(FI);
   fclose(FO);
   fclose(FX);
   }
@@ -94,7 +72,7 @@ n_lines){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void Unpack(char *fpname){
-  FILE *F = fopen(fpname, "r");
+  FILE *F = Fopen(fpname, "r");
   ssize_t ls;
   size_t len;
   char *line = NULL;
@@ -132,10 +110,10 @@ void PrintID(uint32_t i, FILE *F){
 
 uint64_t Pack(char *fpname, char *ipname){
   uint64_t i = 0;
-  FILE *F = fopen(fpname, "w");
-  FILE *R = fopen(ipname, "r");
+  FILE *F = Fopen(fpname, "w");
+  FILE *R = Fopen(ipname, "r");
   Read *Read = CreateRead();
-  
+ 
   while(GetRead(R, Read)){
     PrintStream(Read->scores,   strlen((char *) Read->scores),  F);
     PrintStream(Read->bases,    strlen((char *) Read->bases ),  F);
@@ -147,30 +125,26 @@ uint64_t Pack(char *fpname, char *ipname){
   FreeRead(Read);
   fclose(F);
   fclose(R);
-
   return i;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void PackWithIndex(char *fsname, char *ipname, int verbose){
-  FILE *R = fopen(ipname, "r");
-  FILE *I = fopen(fsname, "r");
-  uint64_t size = 0, idx = 0, lines = 0, k = 0, x = 0;
+  FILE *R = Fopen(ipname, "r");
+  FILE *I = Fopen(fsname, "r");
+  uint64_t lines = 0;
 
   if(fgetc(I) != '#' || fgetc(I) != 'M' || fgetc(I) != 'R' || fgetc(I) != 'L' || 
-  fscanf(I, "%"PRIu64":%"PRIu64"", &size, &lines) != 2){
+  fscanf(I, "%"PRIu64"", &lines) != 1){
     fprintf(stderr, "Error: invalid index file!\n");
     exit(1);
     }
 
-  if(verbose){
-    fprintf(stderr, "[>] Block line size: %"PRIu64"\n", size);
-    fprintf(stderr, "[>] Number of reads: %"PRIu64"\n", lines);
-    }
+  if(verbose) fprintf(stderr, "[>] Number of reads: %"PRIu64"\n", lines);
 
-  Read *Reads = (Read *) Calloc(size+1, sizeof(Read));
-
+  
+/*
   for(;;){
     k = 0;
     while(GetRead(R, &Reads[k]) && k < size){
@@ -194,7 +168,7 @@ void PackWithIndex(char *fsname, char *ipname, int verbose){
     }
 
   free(Reads);
-
+*/
   fclose(R);
   fclose(I);
   }
@@ -213,8 +187,8 @@ void PrintMenu(void){
   "  -V                   display version number,                       \n"
   "  -v                   verbose mode (more information),              \n"
   "  -l                   lossy (does not store read order),            \n"
-  "  -b <size>            block size for sorting,                       \n"
   "  -d <FILE>            unMERLIN (back to the original file),         \n"
+  "                       note: <FILE> is <FILE>.mindex.                \n"
   "                                                                     \n"
   "Mandatory arguments:                                                 \n"
   "                                                                     \n"
@@ -287,22 +261,11 @@ int main(int argc, char *argv[]){
     }
   else{ // PREPARE FOR COMPRESSION
 
-    uint64_t b_size = 0, n_lines = 0;
-    for(x = 1 ; x < argc ; ++x)
-      if(!strcmp(argv[x], "-b")){
-        b_size = atol(argv[x + 1]);
-        break;
-        }
-
-    if(b_size == 0) b_size = MAX_BLOCK;
-    
-    if(verbose) fprintf(stderr, "[>] Using block size: %"PRIu64"\n", b_size);
-
+    uint64_t n_lines = 0;
     if(ArgBin(0, argv, argc, "-l"))
       lossy = 1;
-
     n_lines = Pack(f_pack_name, argv[argc-1]);
-    Sort(f_pack_name, f_sort_name, f_index_name, lossy, b_size, n_lines);
+    Sort(f_pack_name, f_sort_name, f_index_name, lossy, n_lines);
     Unpack(f_sort_name);
     remove(f_sort_name);
     remove(f_pack_name);

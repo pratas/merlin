@@ -66,7 +66,19 @@ char *Cat(char *a, char *b){
 FILE *Fopen(const char *p, const char *m){
   FILE *F = fopen(p, m);
   if(F == NULL){
-    fprintf(stderr, "[x] Error opening: %s (mode %s). Does it exists?\n", p, m);
+    fprintf(stderr, "[x] Error opening: %s (mode %s). Does it exist?\n", p, m);
+    exit(1);
+    }
+  return F;
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// POPEN FILE
+//
+FILE *Popen(const char *p, const char *m){
+  FILE *F = popen(p, m);
+  if(F == NULL){
+    fprintf(stderr, "[x] Error opening: %s (mode %s). Does it exist?\n", p, m);
     exit(1);
     }
   return F;

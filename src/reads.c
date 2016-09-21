@@ -81,7 +81,7 @@ void FreeRead(Read *R){
 //
 Read *GetRead(FILE *F, Read *R){
   int n, c = fgetc(F);
-  size_t len;
+  size_t len = 0;
   ssize_t ls;
 
   if(c == EOF) return NULL;
@@ -94,7 +94,8 @@ Read *GetRead(FILE *F, Read *R){
   if((ls = getline(&R->bases,   &len, F)) == -1) UEOF();
   if((ls = getline(&R->header2, &len, F)) == -1) UEOF();
   if((ls = getline(&R->scores,  &len, F)) == -1) UEOF();
-    
+   
+ 
   if(R->solidData){
     n = 1;
     while(R->bases[n] != '\n'){
