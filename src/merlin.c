@@ -278,6 +278,7 @@ int main(int argc, char *argv[]){
 
     PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
     SortWithIndex(f_mdpack_name, f_mdsort_name, verbose);
+    Unpack(f_mdsort_name);
 
     remove(f_mdpack_name);
     remove(f_mdsort_name);
