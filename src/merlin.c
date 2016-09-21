@@ -72,6 +72,28 @@ void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t n_lines){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+void UnpackR(char *input_file_name){
+  FILE *F = Fopen(input_file_name, "r");
+  ssize_t ls;
+  size_t len;
+  char *line = NULL;
+  const char delim[1] = { ESCAPE };
+
+  while((ls = getline(&line, &len, F)) != -1){
+    strtok(line, delim);
+    char *y = strtok(NULL, delim);
+    char *z = strtok(NULL, delim);
+    char *w = strtok(NULL, delim);
+    char *v = strtok(NULL, delim);
+    WriteReadN(w, z, v, y);
+    }
+
+  free(line);
+  fclose(F);
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 void Unpack(char *fpname){
   FILE *F = Fopen(fpname, "r");
   ssize_t ls;
@@ -179,19 +201,18 @@ void PackFrontIndex(char *input_file_name, char *index_file_name, char
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void SortWithIndex(char *input_file_name, char *output_file_name, int verbose){
-  FILE *INPUT_FILE  = Fopen(input_file_name,  "r");
   char fname[MAX_LINE_SIZE];
-  sprintf(fname, "sort %s", output_file_name);
-  FILE *OUTPUT_FILE = Popen(fname, "w");
+  sprintf(fname, "sort %s", input_file_name);
+  FILE *INPUT_FILE  = Popen(fname,  "r");
+  FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
   char buffer[MAX_LINE_SIZE];
 
   while(fgets(buffer, MAX_LINE_SIZE, INPUT_FILE))
     fputs(buffer, OUTPUT_FILE);
 
-  fclose(INPUT_FILE);
-  pclose(OUTPUT_FILE);
+  pclose(INPUT_FILE);
+  fclose(OUTPUT_FILE);
   }
-
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -278,10 +299,10 @@ int main(int argc, char *argv[]){
 
     PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
     SortWithIndex(f_mdpack_name, f_mdsort_name, verbose);
-    Unpack(f_mdsort_name);
-
     remove(f_mdpack_name);
+    UnpackR(f_mdsort_name);
     remove(f_mdsort_name);
+
     free(f_mdpack_name);
     free(f_mdsort_name);
     }
@@ -297,11 +318,10 @@ int main(int argc, char *argv[]){
 
     n_lines = Pack(f_pack_name, argv[argc-1]);
     Sort(f_pack_name, f_sort_name, f_index_name, lossy, n_lines);
-    Unpack(f_sort_name);
-    // OUTPUT: <STDOUT> & <FILE>.mindex
-
-    remove(f_sort_name);
     remove(f_pack_name);
+    Unpack(f_sort_name);
+    remove(f_sort_name);
+
     free(f_pack_name);
     free(f_sort_name);
     free(f_index_name);
