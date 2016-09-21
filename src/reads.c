@@ -57,6 +57,15 @@ Read *CreateRead(void){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+void InitRead(Read *R){
+  R->solidData   = 0;
+  R->header2E    = 0;
+  R->skipNs      = 0;
+  R->lowestScore = (uint8_t) 255;
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // CREATE READ
 //
 void FreeRead(Read *R){

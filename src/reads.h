@@ -32,6 +32,7 @@ READS;
 uint8_t  PseudoDna2Solid  (uint8_t);
 uint8_t  Solid2PseudoDna  (uint8_t);
 Read     *CreateRead      (void);
+void     InitRead         (Read *);
 void     FreeRead         (Read *);
 Read     *GetRead         (FILE *, Read *);
 

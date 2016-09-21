@@ -19,12 +19,22 @@ int Compare(const void *a, const void *b){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+/*
 int SortByPosition(const void *a, const void *b){
   Read *xA = (Read *) a;
   Read *xB = (Read *) b;
   return xB->position-xA->position;
   }
+*/
+
+int SortByPosition(const void *a, const void *b){ 
+  Read *ia = (Read *) a;
+  Read *ib = (Read *) b;
+  if     (ia->position < ib->position) return -1;
+  else if(ia->position > ib->position) return 1;
+  else                                 return 0;
+  }
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -167,36 +177,30 @@ void PackWithIndex(char *fsname, char *ipname, int verbose){
     fprintf(stderr, "[>] Number of reads: %"PRIu64"\n", lines);
     }
 
-  Read **Reads = (Read **) Malloc((size+1) * sizeof(Read *));
+  Read *Reads = (Read *) Calloc(size+1, sizeof(Read));
 
   for(;;){
     k = 0;
-    Reads[k] = CreateRead();
-
-    while(GetRead(R, Reads[k]) && k < size){
-
-      if(fscanf(I, "%"PRIu64"", &Reads[k]->position) != 1){
+    while(GetRead(R, &Reads[k]) && k < size){
+      uint64_t num;
+      if(fscanf(I, "%"PRIu64"", &num) != 1){
         fprintf(stderr, "Error: the index file does not match!\n");
         exit(1);
         }
-      //qsort(Reads, k+1, sizeof(Read), SortByPosition);
-      Reads[++k] = CreateRead();
+      Reads[++k].position = num;
       ++idx;
       }
 
-    // FIXME: SORT IS NOT WORKING
     qsort(Reads, k, sizeof(Read), SortByPosition);
 
     for(x = 0 ; x < k ; ++x)
-      WriteRead(Reads[x]->header1, Reads[x]->bases, Reads[x]->header2, 
-      Reads[x]->scores);
+      WriteRead(Reads[x].header1, Reads[x].bases, Reads[x].header2, 
+      Reads[x].scores);
 
     if(idx >= lines)
       break;
     }
 
-  for(x = 0 ; x < size ; ++x)
-    free(Reads[x]);
   free(Reads);
 
   fclose(R);
