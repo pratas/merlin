@@ -11,6 +11,7 @@
 
 #define ESCAPE 9 // 9 ASCII = TAB
 #define MAX_BLOCK 100000
+#define MAX_LINE_SIZE 4096
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,16 +50,16 @@ void WriteRead(char *w, char *x, char *y, char *z){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t n_lines){
-  char fname[2048];
+  char fname[MAX_LINE_SIZE];
   sprintf(fname, "sort %s", fin);
   FILE *FI = Popen(fname, "r");
   FILE *FX = Fopen(fdx, "w");
   FILE *FO = Fopen(fou, "w");
-  char readbuf[2048];
+  char readbuf[MAX_LINE_SIZE];
 
   fprintf(FX, "#MRL%"PRIu64"\n", n_lines);
 
-  while(fgets(readbuf, 2048, FI)){
+  while(fgets(readbuf, MAX_LINE_SIZE, FI)){
     fputs(readbuf, FO);
     if(lossy == 0)
       fprintf(FX, "%s", strrchr(readbuf, '\t') + 1);
@@ -179,25 +180,16 @@ void PackFrontIndex(char *input_file_name, char *index_file_name, char
 
 void SortWithIndex(char *input_file_name, char *output_file_name, int verbose){
   FILE *INPUT_FILE  = Fopen(input_file_name,  "r");
-  FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
-  uint64_t lines = 0;
+  char fname[MAX_LINE_SIZE];
+  sprintf(fname, "sort %s", output_file_name);
+  FILE *OUTPUT_FILE = Popen(fname, "w");
+  char buffer[MAX_LINE_SIZE];
 
-
-
-/*
-    qsort(Reads, k, sizeof(Read), SortByPosition);
-
-    for(x = 0 ; x < k ; ++x)
-      WriteRead(Reads[x].header1, Reads[x].bases, Reads[x].header2, 
-      Reads[x].scores);
-
-    if(idx >= lines)
-      break;
-    }
-*/
+  while(fgets(buffer, MAX_LINE_SIZE, INPUT_FILE))
+    fputs(buffer, OUTPUT_FILE);
 
   fclose(INPUT_FILE);
-  fclose(OUTPUT_FILE);
+  pclose(OUTPUT_FILE);
   }
 
 
