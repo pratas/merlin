@@ -108,6 +108,12 @@ void PrintID(uint32_t i, FILE *F){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+void PrintIDR(uint32_t i, FILE *F){
+  fprintf(F, "%u\t", i);
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 uint64_t Pack(char *fpname, char *ipname){
   uint64_t i = 0;
   FILE *F = Fopen(fpname, "w");
@@ -130,33 +136,55 @@ uint64_t Pack(char *fpname, char *ipname){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void PackWithIndex(char *fsname, char *ipname, int verbose){
-  FILE *R = Fopen(ipname, "r");
-  FILE *I = Fopen(fsname, "r");
+void PackFrontIndex(char *input_file_name, char *index_file_name, char 
+*output_file_name, int verbose){
+  FILE *INPUT_FILE  = Fopen(input_file_name,  "r");
+  FILE *INDEX_FILE  = Fopen(index_file_name,  "r");
+  FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
   uint64_t lines = 0;
 
-  if(fgetc(I) != '#' || fgetc(I) != 'M' || fgetc(I) != 'R' || fgetc(I) != 'L' || 
-  fscanf(I, "%"PRIu64"", &lines) != 1){
+  if(fgetc(INDEX_FILE) != '#' || fgetc(INDEX_FILE) != 'M' || fgetc(INDEX_FILE) 
+  != 'R' || fgetc(INDEX_FILE) != 'L' || fscanf(INDEX_FILE, "%"PRIu64"", &lines) 
+  != 1){
     fprintf(stderr, "Error: invalid index file!\n");
     exit(1);
     }
 
   if(verbose) fprintf(stderr, "[>] Number of reads: %"PRIu64"\n", lines);
 
-  
-/*
-  for(;;){
-    k = 0;
-    while(GetRead(R, &Reads[k]) && k < size){
-      uint64_t num;
-      if(fscanf(I, "%"PRIu64"", &num) != 1){
-        fprintf(stderr, "Error: the index file does not match!\n");
-        exit(1);
-        }
-      Reads[++k].position = num;
-      ++idx;
-      }
+  Read *Read = CreateRead();
 
+  while(GetRead(INPUT_FILE, Read)){
+    uint64_t num;
+    if(fscanf(INDEX_FILE, "%"PRIu64"", &num) != 1){
+      fprintf(stderr, "Error: the index file does not match!\n");
+      exit(1);
+      }
+    PrintIDR(num, OUTPUT_FILE);
+    PrintStream(Read->scores,   strlen((char *) Read->scores),  OUTPUT_FILE);
+    PrintStream(Read->bases,    strlen((char *) Read->bases ),  OUTPUT_FILE);
+    PrintStream(Read->header1,  strlen((char *) Read->header1), OUTPUT_FILE);
+    PrintStream(Read->header2,  strlen((char *) Read->header2), OUTPUT_FILE);
+    fprintf(OUTPUT_FILE, "\n");
+    }
+
+  FreeRead(Read);
+  fclose(INPUT_FILE);
+  fclose(INDEX_FILE);
+  fclose(OUTPUT_FILE);
+  }
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+void SortWithIndex(char *input_file_name, char *output_file_name, int verbose){
+  FILE *INPUT_FILE  = Fopen(input_file_name,  "r");
+  FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
+  uint64_t lines = 0;
+
+
+
+/*
     qsort(Reads, k, sizeof(Read), SortByPosition);
 
     for(x = 0 ; x < k ; ++x)
@@ -166,11 +194,10 @@ void PackWithIndex(char *fsname, char *ipname, int verbose){
     if(idx >= lines)
       break;
     }
-
-  free(Reads);
 */
-  fclose(R);
-  fclose(I);
+
+  fclose(INPUT_FILE);
+  fclose(OUTPUT_FILE);
   }
 
 
@@ -235,10 +262,6 @@ int main(int argc, char *argv[]){
 
   if(ArgBin(0, argv, argc, "-v"))
     verbose = 1;
-  
-  char *f_pack_name  = Cat(argv[argc-1], ".mpack");
-  char *f_sort_name  = Cat(argv[argc-1], ".msort");
-  char *f_index_name = Cat(argv[argc-1], ".mindex");
 
   if(verbose) fprintf(stderr, "[>] Running MERLIN ...\n");
 
@@ -257,24 +280,40 @@ int main(int argc, char *argv[]){
       }
 
     if(verbose) fprintf(stderr, "[>] Reading index file: %s\n", argv[iarg]);
-    PackWithIndex(argv[iarg], argv[argc-1], verbose);
+
+    char *f_mdpack_name = Cat(argv[argc-1], ".mdpack");
+    char *f_mdsort_name = Cat(argv[argc-1], ".mdsort");
+
+    PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
+    SortWithIndex(f_mdpack_name, f_mdsort_name, verbose);
+
+    remove(f_mdpack_name);
+    remove(f_mdsort_name);
+    free(f_mdpack_name);
+    free(f_mdsort_name);
     }
-  else{ // PREPARE FOR COMPRESSION
+  else{ // PREPARE FOR TRANSFORMATION FOR IMPROVE COMPRESSION
+   
+    char *f_pack_name  = Cat(argv[argc-1], ".mpack");
+    char *f_sort_name  = Cat(argv[argc-1], ".msort");
+    char *f_index_name = Cat(argv[argc-1], ".mindex");
 
     uint64_t n_lines = 0;
     if(ArgBin(0, argv, argc, "-l"))
       lossy = 1;
+
     n_lines = Pack(f_pack_name, argv[argc-1]);
     Sort(f_pack_name, f_sort_name, f_index_name, lossy, n_lines);
     Unpack(f_sort_name);
+    // OUTPUT: <STDOUT> & <FILE>.mindex
+
     remove(f_sort_name);
     remove(f_pack_name);
-    // OUTPUT: <STDOUT> & <FILE>.mindex
+    free(f_pack_name);
+    free(f_sort_name);
+    free(f_index_name);
     }
   
-  free(f_pack_name); 
-  free(f_sort_name); 
-  free(f_index_name); 
   if(verbose) fprintf(stderr, "[>] Done!\n");
 
   return EXIT_SUCCESS;
