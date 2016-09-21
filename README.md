@@ -10,12 +10,15 @@ make
 ## 2. RUNNING ##
 
 ### 2.1 Compression ###
+Run:
 <pre>
 ./MERLIN -v file.fq > OUTPUT
 </pre>
+and store file.fq.mindex (you can compress this with gzip).
 Then compress the file file.fq with any fastq compressor.
 
 ### 2.2 Decompression ###
+Decompress the file with the same fastq compressor and them run:
 <pre>
 ./MERLIN -v -d file.fq.mindex OUTPUT > original.fq
 </pre>
