@@ -19,13 +19,6 @@ int Compare(const void *a, const void *b){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
-int SortByPosition(const void *a, const void *b){
-  Read *xA = (Read *) a;
-  Read *xB = (Read *) b;
-  return xB->position-xA->position;
-  }
-*/
 
 int SortByPosition(const void *a, const void *b){ 
   Read *ia = (Read *) a;
@@ -34,7 +27,6 @@ int SortByPosition(const void *a, const void *b){
   else if(ia->position > ib->position) return 1;
   else                                 return 0;
   }
-
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
