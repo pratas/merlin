@@ -310,7 +310,7 @@ int main(int argc, char *argv[]){
    
     char *f_pack_name  = Cat(argv[argc-1], ".mpack");
     char *f_sort_name  = Cat(argv[argc-1], ".msort");
-    char *f_index_name = Cat(argv[argc-1], ".mindex");
+    char *f_index_name = Cat(argv[argc-1], ".mindex"); // FILE WITH INDEXES
 
     uint64_t n_lines = 0;
     if(ArgBin(0, argv, argc, "-l"))
