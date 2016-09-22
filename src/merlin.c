@@ -35,7 +35,7 @@ void WriteRead(char *w, char *x, char *y, char *z){
 void Sort(char *fin, char *fou, char *fdx, int lossy, uint32_t mem, uint64_t 
 n_lines){
   char fname[MAX_LINE_SIZE];
-  sprintf(fname, "sort -S %uM %s", mem, fin);
+  sprintf(fname, "sort -T . -S %uM %s", mem, fin);
   FILE *FI = Popen(fname, "r");
   FILE *FX = Fopen(fdx, "w");
   FILE *FO = Fopen(fou, "w");
@@ -187,7 +187,7 @@ void PackFrontIndex(char *input_file_name, char *index_file_name, char
 void SortWithIndex(char *input_file_name, char *output_file_name, uint32_t mem,
 int verbose){
   char fname[MAX_LINE_SIZE];
-  sprintf(fname, "sort -S %uM %s", mem, input_file_name);
+  sprintf(fname, "sort -T . -S %uM %s", mem, input_file_name);
   FILE *INPUT_FILE  = Popen(fname,  "r");
   FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
   char buffer[MAX_LINE_SIZE];
