@@ -125,8 +125,32 @@ uint64_t Pack(char *fpname, char *ipname){
   uint64_t i = 0;
   FILE *F = Fopen(fpname, "w");
   FILE *R = Fopen(ipname, "r");
+  char header[MAX_LINE_SIZE];
+  char bases[MAX_LINE_SIZE];
+  char header2[MAX_LINE_SIZE];
+  char scores[MAX_LINE_SIZE];
+
+  for(;;){
+    if((c = fgetc(F)) == EOF) return NULL;
+    if(c != '@'){
+      fprintf(stderr, "Error: failed to get the initial '@' character\n");
+      exit(1);
+      }
+    if(fgets(header, MAX_LINE_SIZE, R) == NULL) break;
+    if(fgets(bases, MAX_LINE_SIZE, R) == NULL) break;
+    if(fgets(header2, MAX_LINE_SIZE, R) == NULL) break;
+    if(fgets(scores, MAX_LINE_SIZE, R) == NULL) break;
+    PrintStream(scores,  strlen((char *) scores),  F);
+    PrintStream(bases,   strlen((char *) bases ),  F);
+    PrintStream(header,  strlen((char *) header),  F);
+    PrintStream(header2, strlen((char *) header2), F);
+    PrintID(++i, F);
+    }
+
+/*
+
   Read *Read = CreateRead();
- 
+
   while(GetRead(R, Read)){
     PrintStream(Read->scores,   strlen((char *) Read->scores),  F);
     PrintStream(Read->bases,    strlen((char *) Read->bases ),  F);
@@ -135,7 +159,13 @@ uint64_t Pack(char *fpname, char *ipname){
     PrintID(++i, F);
     }
 
+  if((ls = getline(&R->header1, &len, F)) == -1) UEOF();
+  if((ls = getline(&R->bases,   &len, F)) == -1) UEOF();
+  if((ls = getline(&R->header2, &len, F)) == -1) UEOF();
+  if((ls = getline(&R->scores,  &len, F)) == -1) UEOF();
   FreeRead(Read);
+*/
+
   fclose(F);
   fclose(R);
   return i;
