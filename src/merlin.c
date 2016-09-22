@@ -280,9 +280,13 @@ int main(int argc, char *argv[]){
     char *f_mdpack_name = Cat(argv[argc-1], ".mdpack");
     char *f_mdsort_name = Cat(argv[argc-1], ".mdsort");
 
+
+    if(verbose) fprintf(stderr, "[>] Packing ...\n");
     PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
+    if(verbose) fprintf(stderr, "[>] Sorting ...\n");
     SortWithIndex(f_mdpack_name, f_mdsort_name, verbose);
     remove(f_mdpack_name);
+    if(verbose) fprintf(stderr, "[>] Unpacking ...\n");
     UnpackR(f_mdsort_name);
     remove(f_mdsort_name);
 
@@ -299,9 +303,12 @@ int main(int argc, char *argv[]){
     if(ArgBin(0, argv, argc, "-l"))
       lossy = 1;
 
+    if(verbose) fprintf(stderr, "[>] Packing ...\n");
     n_lines = Pack(f_pack_name, argv[argc-1]);
+    if(verbose) fprintf(stderr, "[>] Sorting ...\n");
     Sort(f_pack_name, f_sort_name, f_index_name, lossy, n_lines);
     remove(f_pack_name);
+    if(verbose) fprintf(stderr, "[>] Unpacking ...\n");
     Unpack(f_sort_name);
     remove(f_sort_name);
 
