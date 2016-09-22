@@ -32,9 +32,10 @@ void WriteRead(char *w, char *x, char *y, char *z){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void Sort(char *fin, char *fou, char *fdx, int lossy, uint64_t n_lines){
+void Sort(char *fin, char *fou, char *fdx, int lossy, uint32_t mem, uint64_t 
+n_lines){
   char fname[MAX_LINE_SIZE];
-  sprintf(fname, "sort %s", fin);
+  sprintf(fname, "sort -S %uM %s", mem, fin);
   FILE *FI = Popen(fname, "r");
   FILE *FX = Fopen(fdx, "w");
   FILE *FO = Fopen(fou, "w");
@@ -183,9 +184,10 @@ void PackFrontIndex(char *input_file_name, char *index_file_name, char
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void SortWithIndex(char *input_file_name, char *output_file_name, int verbose){
+void SortWithIndex(char *input_file_name, char *output_file_name, uint32_t mem,
+int verbose){
   char fname[MAX_LINE_SIZE];
-  sprintf(fname, "sort %s", input_file_name);
+  sprintf(fname, "sort -S %uM %s", mem, input_file_name);
   FILE *INPUT_FILE  = Popen(fname,  "r");
   FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
   char buffer[MAX_LINE_SIZE];
@@ -210,6 +212,7 @@ void PrintMenu(void){
   "  -V                   display version number,                       \n"
   "  -v                   verbose mode (more information),              \n"
   "  -l                   lossy (does not store read order),            \n"
+  "  -m <memory>          maximum memory used in sort (in MB),          \n"
   "  -d <FILE>            unMERLIN (back to the original file),         \n"
   "                       note: <FILE> is <FILE>.mindex.                \n"
   "                                                                     \n"
@@ -245,6 +248,7 @@ void PrintVersion(void){
 
 int main(int argc, char *argv[]){
   int x, lossy = 0, verbose = 0;
+  uint32_t mem = 2048;
 
   if(argc == 1 || argc > 6 || ArgBin(0, argv, argc, "-h")){
     PrintMenu();
@@ -260,6 +264,14 @@ int main(int argc, char *argv[]){
     verbose = 1;
 
   if(verbose) fprintf(stderr, "[>] Running MERLIN ...\n");
+
+  for(x = 1 ; x < argc ; ++x)
+    if(!strcmp(argv[x], "-m")){
+      mem = atol(argv[x+1]);
+      break;
+      }
+
+  if(verbose) fprintf(stderr, "[>] Maximum memory used: %u MB\n", mem);
 
   if(ArgBin(0, argv, argc, "-d")){ // PREPARE FOR DECOMPRESSION
 
@@ -284,7 +296,7 @@ int main(int argc, char *argv[]){
     if(verbose) fprintf(stderr, "[>] Packing ...\n");
     PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
     if(verbose) fprintf(stderr, "[>] Sorting ...\n");
-    SortWithIndex(f_mdpack_name, f_mdsort_name, verbose);
+    SortWithIndex(f_mdpack_name, f_mdsort_name, mem, verbose);
     remove(f_mdpack_name);
     if(verbose) fprintf(stderr, "[>] Unpacking ...\n");
     UnpackR(f_mdsort_name);
@@ -306,7 +318,7 @@ int main(int argc, char *argv[]){
     if(verbose) fprintf(stderr, "[>] Packing ...\n");
     n_lines = Pack(f_pack_name, argv[argc-1]);
     if(verbose) fprintf(stderr, "[>] Sorting ...\n");
-    Sort(f_pack_name, f_sort_name, f_index_name, lossy, n_lines);
+    Sort(f_pack_name, f_sort_name, f_index_name, lossy, mem, n_lines);
     remove(f_pack_name);
     if(verbose) fprintf(stderr, "[>] Unpacking ...\n");
     Unpack(f_sort_name);
