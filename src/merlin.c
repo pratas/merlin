@@ -124,22 +124,26 @@ void PrintIDR(uint32_t i, FILE *F){
 uint64_t Pack(char *fpname, char *ipname){
   uint64_t i = 0;
   FILE *F = Fopen(fpname, "w");
-  FILE *R = Fopen(ipname, "r");
-  char header[MAX_LINE_SIZE];
-  char bases[MAX_LINE_SIZE];
-  char header2[MAX_LINE_SIZE];
-  char scores[MAX_LINE_SIZE];
+  FILE *INPUT_FILE = Fopen(ipname, "r");
 
   for(;;){
-    if((c = fgetc(F)) == EOF) return NULL;
+    char header[MAX_LINE_SIZE];
+    char bases[MAX_LINE_SIZE];
+    char header2[MAX_LINE_SIZE];
+    char scores[MAX_LINE_SIZE];
+
+    int c = fgetc(INPUT_FILE);
+    if(c == EOF) { printf("WTF\n"); break; }
     if(c != '@'){
       fprintf(stderr, "Error: failed to get the initial '@' character\n");
       exit(1);
       }
-    if(fgets(header, MAX_LINE_SIZE, R) == NULL) break;
-    if(fgets(bases, MAX_LINE_SIZE, R) == NULL) break;
-    if(fgets(header2, MAX_LINE_SIZE, R) == NULL) break;
-    if(fgets(scores, MAX_LINE_SIZE, R) == NULL) break;
+
+    if(fgets(header, MAX_LINE_SIZE, INPUT_FILE) == NULL) break;
+    if(fgets(bases, MAX_LINE_SIZE, INPUT_FILE) == NULL) break;
+    if(fgets(header2, MAX_LINE_SIZE, INPUT_FILE) == NULL) break;
+    if(fgets(scores, MAX_LINE_SIZE, INPUT_FILE) == NULL) break;
+
     PrintStream(scores,  strlen((char *) scores),  F);
     PrintStream(bases,   strlen((char *) bases ),  F);
     PrintStream(header,  strlen((char *) header),  F);
@@ -159,15 +163,11 @@ uint64_t Pack(char *fpname, char *ipname){
     PrintID(++i, F);
     }
 
-  if((ls = getline(&R->header1, &len, F)) == -1) UEOF();
-  if((ls = getline(&R->bases,   &len, F)) == -1) UEOF();
-  if((ls = getline(&R->header2, &len, F)) == -1) UEOF();
-  if((ls = getline(&R->scores,  &len, F)) == -1) UEOF();
   FreeRead(Read);
 */
 
   fclose(F);
-  fclose(R);
+  fclose(INPUT_FILE);
   return i;
   }
 
@@ -321,7 +321,6 @@ int main(int argc, char *argv[]){
 
     char *f_mdpack_name = Cat(argv[argc-1], ".mdpack");
     char *f_mdsort_name = Cat(argv[argc-1], ".mdsort");
-
 
     if(verbose) fprintf(stderr, "[>] Packing ...\n");
     PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
