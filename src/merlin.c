@@ -133,7 +133,7 @@ uint64_t Pack(char *fpname, char *ipname){
     char scores[MAX_LINE_SIZE];
 
     int c = fgetc(INPUT_FILE);
-    if(c == EOF) { printf("WTF\n"); break; }
+    if(c == EOF) break;
     if(c != '@'){
       fprintf(stderr, "Error: failed to get the initial '@' character\n");
       exit(1);
