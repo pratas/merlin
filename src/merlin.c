@@ -261,7 +261,7 @@ void PrintVersion(void){
 
 int main(int argc, char *argv[]){
   int x, lossy = 0, verbose = 0;
-  uint32_t mem = 2048;
+  uint32_t mem = 4096;
 
   if(argc == 1 || argc > 6 || ArgBin(0, argv, argc, "-h")){
     PrintMenu();
