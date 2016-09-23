@@ -200,7 +200,7 @@ void PackFrontIndex(char *input_file_name, char *index_file_name, char
 void SortWithIndex(char *input_file_name, char *output_file_name, uint32_t mem,
 int verbose){
   char fname[MAX_LINE_SIZE];
-  sprintf(fname, "sort -T . -S %uM %s", mem, input_file_name);
+  sprintf(fname, "sort -V -T . -S %uM %s", mem, input_file_name);
   FILE *INPUT_FILE  = Popen(fname,  "r");
   FILE *OUTPUT_FILE = Fopen(output_file_name, "w");
   char buffer[MAX_LINE_SIZE];
