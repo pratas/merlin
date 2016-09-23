@@ -39,14 +39,14 @@ n_lines){
   FILE *FI = Popen(fname, "r");
   FILE *FX = Fopen(fdx, "w");
   FILE *FO = Fopen(fou, "w");
-  char readbuf[MAX_LINE_SIZE];
+  char buffer[MAX_LINE_SIZE];
 
   fprintf(FX, "#MRL%"PRIu64"\n", n_lines);
 
-  while(fgets(readbuf, MAX_LINE_SIZE, FI)){
-    fputs(readbuf, FO);
+  while(fgets(buffer, MAX_LINE_SIZE, FI)){
+    fputs(buffer, FO);
     if(lossy == 0)
-      fprintf(FX, "%s", strrchr(readbuf, '\t') + 1);
+      fprintf(FX, "%s", strrchr(buffer, '\t') + 1);
     }
 
   pclose(FI);
@@ -58,12 +58,12 @@ n_lines){
 
 void UnpackR(char *input_file_name){
   FILE *F = Fopen(input_file_name, "r");
-  ssize_t ls;
-  size_t len;
-  char *line = NULL;
-  const char delim[1] = { ESCAPE };
+  const char delim[2] = { ESCAPE, '\0' };
 
-  while((ls = getline(&line, &len, F)) != -1){
+  for(;;){
+    char line[MAX_LINE_SIZE * 4];
+    if(fgets(line, MAX_LINE_SIZE * 4, F) == NULL)
+      break;
     strtok(line, delim);
     char *y = strtok(NULL, delim);
     char *z = strtok(NULL, delim);
@@ -72,7 +72,6 @@ void UnpackR(char *input_file_name){
     WriteReadN(w, z, v, y);
     }
 
-  free(line);
   fclose(F);
   }
 
@@ -80,12 +79,12 @@ void UnpackR(char *input_file_name){
 
 void Unpack(char *fpname){
   FILE *F = Fopen(fpname, "r");
-  ssize_t ls;
-  size_t len;
-  char *line = NULL;
-  const char delim[1] = { ESCAPE };
+  const char delim[2] = { ESCAPE, '\0' };
 
-  while((ls = getline(&line, &len, F)) != -1){
+  for(;;){
+    char line[MAX_LINE_SIZE * 4];
+    if(fgets(line, MAX_LINE_SIZE * 4, F) == NULL)
+      break;    
     char *x = strtok(line, delim);
     char *y = strtok(NULL, delim);
     char *z = strtok(NULL, delim);
@@ -93,7 +92,6 @@ void Unpack(char *fpname){
     WriteReadN(z, y, w, x);
     }
 
-  free(line);
   fclose(F);
   }
 
@@ -150,21 +148,6 @@ uint64_t Pack(char *fpname, char *ipname){
     PrintStream(header2, strlen((char *) header2), F);
     PrintID(++i, F);
     }
-
-/*
-
-  Read *Read = CreateRead();
-
-  while(GetRead(R, Read)){
-    PrintStream(Read->scores,   strlen((char *) Read->scores),  F);
-    PrintStream(Read->bases,    strlen((char *) Read->bases ),  F);
-    PrintStream(Read->header1,  strlen((char *) Read->header1), F);
-    PrintStream(Read->header2,  strlen((char *) Read->header2), F);
-    PrintID(++i, F);
-    }
-
-  FreeRead(Read);
-*/
 
   fclose(F);
   fclose(INPUT_FILE);
