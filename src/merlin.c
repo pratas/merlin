@@ -69,7 +69,7 @@ void UnpackR(char *input_file_name){
     char *z = strtok(NULL, delim);
     char *w = strtok(NULL, delim);
     char *v = strtok(NULL, delim);
-    WriteReadN(w, z, v, y);
+    WriteReadN(w, y, v, z);
     }
 
   fclose(F);
@@ -89,7 +89,7 @@ void Unpack(char *fpname){
     char *y = strtok(NULL, delim);
     char *z = strtok(NULL, delim);
     char *w = strtok(NULL, delim);
-    WriteReadN(z, y, w, x);
+    WriteReadN(z, x, w, y);
     }
 
   fclose(F);
@@ -246,7 +246,8 @@ void PrintVersion(void){
   "                          |   MERLIN %u.%u   |                           \n"
   "                          ==================                             \n"
   "                                                                         \n"
-  "           Compression boost for any FASTQ compressing tool.             \n"
+  "                    Compression boost for any FASTQ                      \n"
+  "               compression tool using large FASTQ files                  \n"
   "                                                                         \n"
   "Copyright (C) 2016-2017 University of Aveiro. This is a Free software.   \n"
   "You may redistribute copies of it under the terms of the GNU - General   \n"
