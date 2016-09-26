@@ -142,9 +142,9 @@ uint64_t Pack(char *fpname, char *ipname){
     if(fgets(header2, MAX_LINE_SIZE, INPUT_FILE) == NULL) break;
     if(fgets(scores, MAX_LINE_SIZE, INPUT_FILE) == NULL) break;
 
-    PrintStream(scores,  strlen((char *) scores),  F);
-    PrintStream(bases,   strlen((char *) bases ),  F);
-    PrintStream(header,  strlen((char *) header),  F);
+    PrintStream(bases,   strlen((char *) bases  ), F);
+    PrintStream(scores,  strlen((char *) scores ), F);
+    PrintStream(header,  strlen((char *) header ), F);
     PrintStream(header2, strlen((char *) header2), F);
     PrintID(++i, F);
     }
@@ -181,8 +181,8 @@ void PackFrontIndex(char *input_file_name, char *index_file_name, char
       exit(1);
       }
     PrintIDR(num, OUTPUT_FILE);
-    PrintStream(Read->scores,   strlen((char *) Read->scores),  OUTPUT_FILE);
-    PrintStream(Read->bases,    strlen((char *) Read->bases ),  OUTPUT_FILE);
+    PrintStream(Read->bases,    strlen((char *) Read->bases  ), OUTPUT_FILE);
+    PrintStream(Read->scores,   strlen((char *) Read->scores ), OUTPUT_FILE);
     PrintStream(Read->header1,  strlen((char *) Read->header1), OUTPUT_FILE);
     PrintStream(Read->header2,  strlen((char *) Read->header2), OUTPUT_FILE);
     fprintf(OUTPUT_FILE, "\n");
