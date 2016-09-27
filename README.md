@@ -54,7 +54,8 @@ Report issues to &#60{pratas,ap}@ua.pt&#62.
 
 ## 4. CITATION ##
 
-On using this software/method please cite: Submitted paper.
+On using this software/method please cite:
+D. Pratas, A. J. Pinho & J. M. O. S. Rodrigues (2016). MERLIN: FASTQ ordering by DNA bases. Zenodo. http://doi.org/10.5281/zenodo.155392
 
 ## 5. ISSUES ##
 
