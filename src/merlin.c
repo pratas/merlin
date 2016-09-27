@@ -217,7 +217,7 @@ int verbose){
 void PrintMenu(void){ 
   fprintf(stderr,
   "Usage: MERLIN [OPTION]... [FILE] > [STDOUT]                          \n"
-  "Compression boost for any FASTQ compressing tool.                    \n"
+  "FASTQ ordering by DNA bases                                          \n"
   "                                                                     \n"
   "Non-mandatory arguments:                                             \n"
   "                                                                     \n"
@@ -246,8 +246,7 @@ void PrintVersion(void){
   "                          |   MERLIN %u.%u   |                           \n"
   "                          ==================                             \n"
   "                                                                         \n"
-  "                    Compression boost for any FASTQ                      \n"
-  "               compression tool using large FASTQ files                  \n"
+  "                      FASTQ ordering by DNA bases                        \n"
   "                                                                         \n"
   "Copyright (C) 2016-2017 University of Aveiro. This is a Free software.   \n"
   "You may redistribute copies of it under the terms of the GNU - General   \n"
