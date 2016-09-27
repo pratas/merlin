@@ -1,4 +1,4 @@
-MERLIN: compression boost for any FASTQ compressing tool
+MERLIN: FASTQ ordering by DNA bases
 
 ## 1. INSTALLATION ##
 <pre>
@@ -32,8 +32,8 @@ These will print the following options:
 <pre>
 <p>
 Usage: MERLIN [OPTION]... [FILE] &#62 [STDOUT]                          
-Compression boost for any FASTQ compressing tool.                    
-                                                                     
+FASTQ ordering by DNA bases                                                                    
+ 
 Non-mandatory arguments:                                             
                                                                      
   -h                   give this help,                               
