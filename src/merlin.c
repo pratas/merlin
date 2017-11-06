@@ -309,7 +309,7 @@ int main(int argc, char *argv[]){
     PackFrontIndex(argv[argc-1], argv[iarg], f_mdpack_name, verbose);
     if(verbose) fprintf(stderr, "[>] Sorting ...\n");
     SortWithIndex(f_mdpack_name, f_mdsort_name, mem, verbose);
-    remove(f_mdpack_name);
+    //remove(f_mdpack_name);
     if(verbose) fprintf(stderr, "[>] Unpacking ...\n");
     UnpackR(f_mdsort_name);
     remove(f_mdsort_name);

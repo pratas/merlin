@@ -80,7 +80,7 @@ void FreeRead(Read *R){
 // GET READ
 //
 Read *GetRead(FILE *F, Read *R){
-  int n, c = fgetc(F);
+  int64_t n, c = fgetc(F);
   size_t len = 0;
   ssize_t ls;
 

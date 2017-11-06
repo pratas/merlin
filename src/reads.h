@@ -11,11 +11,11 @@ typedef struct{
   char       *header2;
   char       *scores;
   uint64_t   position;
-  uint32_t   headerMaxSize;
-  uint32_t   readMaxSize;
-  uint32_t   solidData;
-  uint32_t   header2E;
-  uint32_t   skipNs;
+  uint64_t   headerMaxSize;
+  uint64_t   readMaxSize;
+  uint64_t   solidData;
+  uint64_t   header2E;
+  uint64_t   skipNs;
   uint8_t    lowestScore;
   }
 Read;
