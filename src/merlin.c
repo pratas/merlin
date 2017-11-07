@@ -333,7 +333,8 @@ int main(int argc, char *argv[]){
     n_lines = Pack(f_pack_name, argv[argc-1]);
     if(verbose) fprintf(stderr, "[>] Sorting ...\n");
     Sort(f_pack_name, f_sort_name, f_index_name, lossy, mem, n_lines);
-    remove(f_pack_name);
+    // THIS IS A TEST
+    //remove(f_pack_name);
     if(verbose) fprintf(stderr, "[>] Unpacking ...\n");
     Unpack(f_sort_name);
     remove(f_sort_name);
